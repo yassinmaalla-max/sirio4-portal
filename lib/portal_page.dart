@@ -89,7 +89,41 @@ class _PortalPageState extends State<PortalPage> {
           const SnackBar(content: Text('Diagnostic réservé à l\'administrateur')));
     }
   }
+int _wifiLevel() {
+    if (!_espOnline || _esp == null || _esp!['rssi'] == null) return 0;
+    final rssi = (_esp!['rssi'] as num).toInt();
+    if (rssi >= -50) return 5;
+    if (rssi >= -60) return 4;
+    if (rssi >= -70) return 3;
+    if (rssi >= -80) return 2;
+    return 1;
+  }
 
+  Widget _wifiBars() {
+    const green = Color(0xFF39FF14);
+    final level = _wifiLevel();
+    final color = level == 0
+        ? Colors.white24
+        : (level >= 4
+            ? green
+            : (level == 3
+                ? Colors.lime
+                : (level == 2 ? Colors.orange : Colors.redAccent)));
+    return Row(mainAxisSize: MainAxisSize.min,
+      children: [
+        for (int i = 1; i <= 5; i++)
+          Container(
+            width: 4,
+            height: 4.0 + i * 3.5,
+            margin: const EdgeInsets.symmetric(horizontal: 1.5),
+            decoration: BoxDecoration(
+              color: i <= level ? color : Colors.white12,
+              borderRadius: BorderRadius.circular(1),
+            ),
+          ),
+      ],
+    );
+  }
   Widget _statusLine(String label, bool ok) {
     return Row(mainAxisSize: MainAxisSize.min, children: [
       Text(label, style: const TextStyle(color: Colors.white70, letterSpacing: 2, fontSize: 12)),
@@ -140,6 +174,20 @@ class _PortalPageState extends State<PortalPage> {
                     Text('PORTAIL INTERFACE', style: TextStyle(color: Colors.white70, fontSize: 10, letterSpacing: 2)),
                   ]),
                   const Spacer(),
+                  GestureDetector(
+                    onTap: _openWifiIfAdmin,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        _wifiBars(),
+                        const SizedBox(width: 6),
+                        Text(
+                          _esp?['rssi'] != null ? '${_esp!['rssi']} dBm' : '-- dBm',
+                          style: const TextStyle(color: Colors.white38, fontSize: 10, fontFamily: 'monospace'),
+                        ),
+                      ]),
+                    ),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.settings, color: Colors.white54),
                     onPressed: () {

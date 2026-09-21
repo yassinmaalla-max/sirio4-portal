@@ -1,13 +1,22 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-
+import 'wifi_page.dart';
 class AdminPage extends StatelessWidget {
   const AdminPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     const green = Color(0xFF39FF14);
+    Card(color: const Color(0xFF161616),
+  child: ListTile(
+    leading: const Icon(Icons.wifi_tethering, color: Color(0xFF39FF14)),
+    title: const Text('WiFi de la carte ESP', style: TextStyle(color: Colors.white)),
+    subtitle: const Text('Reconfigurer si la carte est hors ligne', style: TextStyle(color: Colors.white38, fontSize: 11)),
+    trailing: const Icon(Icons.chevron_right, color: Colors.white38),
+    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WifiPage())),
+  ),
+),
     final myUid = FirebaseAuth.instance.currentUser!.uid;
     return Scaffold(
       appBar: AppBar(

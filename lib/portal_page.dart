@@ -16,6 +16,8 @@ class _PortalPageState extends State<PortalPage> {
   bool _fbConnected = false;
   final List<String> _logs = ['> Waiting for command...'];
   StreamSubscription? _connSub;
+  Map<String, dynamic>? _profile;
+StreamSubscription? _profileSub;
 
   @override
   void initState() {
@@ -23,6 +25,17 @@ class _PortalPageState extends State<PortalPage> {
     _connSub = FirebaseDatabase.instance.ref('.info/connected').onValue.listen((e) {
       if (mounted) setState(() => _fbConnected = e.snapshot.value == true);
     });
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+  _profileSub = FirebaseDatabase.instance.ref('users/$uid').onValue.listen((e) async {
+    if (!mounted) return;
+    if (e.snapshot.value == null) {
+      final u = FirebaseAuth.instance.currentUser!;
+      await FirebaseDatabase.instance.ref('users/$uid').set({
+        'email': u.email, 'role': 'user', 'enabled': false, 'createdAt': ServerValue.timestamp});
+    } else {
+      setState(() => _profile = Map<String, dynamic>.from(e.snapshot.value as Map));
+    }
+  });
   }
 
   @override

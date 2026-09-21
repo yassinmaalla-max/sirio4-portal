@@ -9,14 +9,6 @@ class AdminPage extends StatelessWidget {
   Widget build(BuildContext context) {
     const green = Color(0xFF39FF14);
     Card(color: const Color(0xFF161616),
-  child: ListTile(
-    leading: const Icon(Icons.wifi_tethering, color: Color(0xFF39FF14)),
-    title: const Text('WiFi de la carte ESP', style: TextStyle(color: Colors.white)),
-    subtitle: const Text('Reconfigurer si la carte est hors ligne', style: TextStyle(color: Colors.white38, fontSize: 11)),
-    trailing: const Icon(Icons.chevron_right, color: Colors.white38),
-    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WifiPage())),
-  ),
-),
     final myUid = FirebaseAuth.instance.currentUser!.uid;
     return Scaffold(
       appBar: AppBar(
@@ -32,46 +24,98 @@ class AdminPage extends StatelessWidget {
           }
           final map = Map<String, dynamic>.from(snap.data!.snapshot.value as Map);
           return ListView(
-            padding: const EdgeInsets.all(16),
-            children: map.entries.map((e) {
-              final uid = e.key;
-              final p = Map<String, dynamic>.from(e.value as Map);
-              final isMe = uid == myUid;
-              return Card(
-                color: const Color(0xFF161616),
-                child: ListTile(
-                  title: Text(p['email'] ?? '?', style: const TextStyle(color: Colors.white)),
-                  subtitle: Text(
-                    p['role'] == 'admin' ? 'ADMIN' : (p['enabled'] == true ? 'ACTIF' : 'EN ATTENTE'),
-                    style: TextStyle(
-                      color: p['role'] == 'admin' ? green : (p['enabled'] == true ? Colors.white54 : Colors.orange),
-                      fontSize: 11,
-                    ),
-                  ),
-                  trailing: isMe
-                      ? const Text('moi', style: TextStyle(color: Colors.white24))
-                      : Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Switch(
-                              value: p['enabled'] == true,
-                              activeColor: green,
-                              onChanged: (v) => FirebaseDatabase.instance.ref('users/$uid').update({'enabled': v}),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.redAccent),
-                              onPressed: () => _confirmDelete(context, uid, p['email'] ?? ''),
-                            ),
-                          ],
-                        ),
-                ),
-              );
-            }).toList(),
-          );
-        },
+  padding: const EdgeInsets.all(16),
+  children: [
+    Card(
+      color: const Color(0xFF161616),
+      child: ListTile(
+        leading: const Icon(
+          Icons.wifi_tethering,
+          color: Color(0xFF39FF14),
+        ),
+        title: const Text(
+          'WiFi de la carte ESP',
+          style: TextStyle(color: Colors.white),
+        ),
+        subtitle: const Text(
+          'Reconfigurer si la carte est hors ligne',
+          style: TextStyle(
+            color: Colors.white38,
+            fontSize: 11,
+          ),
+        ),
+        trailing: const Icon(
+          Icons.chevron_right,
+          color: Colors.white38,
+        ),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const WifiPage(),
+          ),
+        ),
       ),
-    );
-  }
+    ),
+
+    ...map.entries.map((e) {
+      final uid = e.key;
+      final p = Map<String, dynamic>.from(e.value as Map);
+      final isMe = uid == myUid;
+
+      return Card(
+        color: const Color(0xFF161616),
+        child: ListTile(
+          title: Text(
+            p['email'] ?? '?',
+            style: const TextStyle(color: Colors.white),
+          ),
+          subtitle: Text(
+            p['role'] == 'admin'
+                ? 'ADMIN'
+                : (p['enabled'] == true ? 'ACTIF' : 'EN ATTENTE'),
+            style: TextStyle(
+              color: p['role'] == 'admin'
+                  ? green
+                  : (p['enabled'] == true
+                      ? Colors.white54
+                      : Colors.orange),
+              fontSize: 11,
+            ),
+          ),
+          trailing: isMe
+              ? const Text(
+                  'moi',
+                  style: TextStyle(color: Colors.white24),
+                )
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Switch(
+                      value: p['enabled'] == true,
+                      activeColor: green,
+                      onChanged: (v) => FirebaseDatabase.instance
+                          .ref('users/$uid')
+                          .update({'enabled': v}),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete,
+                        color: Colors.redAccent,
+                      ),
+                      onPressed: () => _confirmDelete(
+                        context,
+                        uid,
+                        p['email'] ?? '',
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      );
+    }),
+  ],
+);
+
 
   void _confirmDelete(BuildContext context, String uid, String email) {
     showDialog(

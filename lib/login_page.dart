@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -78,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
                         decoration: const InputDecoration(hintText: 'operateur@sirio4.com', hintStyle: TextStyle(color: Colors.white24)),
                       ),
                       const SizedBox(height: 12),
-                      const Text('MOT DE PASSE', style: TextStyle(color: green, fontSize: 10, letterSpacing: 1)),
+                      const Text('ASSE', style: TextStyle(color: green, fontSize: 10, letterSpacing: 1)),
                       TextField(
                         controller: _pass,
                         obscureText: true,
@@ -99,6 +100,9 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 6),
                       Center(child: TextButton(onPressed: _forgot, child: const Text('Mot de passe oublié ?', style: TextStyle(color: Colors.white54, fontSize: 12)))),
+                      TextButton(
+  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterPage())),
+  child: const Text('Créer un compte', style: TextStyle(color: green, fontSize: 12))),
                     ],
                   ),
                 ),

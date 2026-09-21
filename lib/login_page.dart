@@ -118,3 +118,24 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+
+  void _confirmDelete(BuildContext context, String uid, String email) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF161616),
+        title: const Text('Supprimer l\'accès ?', style: TextStyle(color: Colors.white)),
+        content: Text('$email ne pourra plus ouvrir le portail.', style: const TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
+          TextButton(
+              onPressed: () {
+                FirebaseDatabase.instance.ref('users/$uid').remove();
+                Navigator.pop(context);
+              },
+              child: const Text('Supprimer', style: TextStyle(color: Colors.redAccent))),
+        ],
+      ),
+    );
+  }
+}

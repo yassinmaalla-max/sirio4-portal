@@ -10,8 +10,11 @@ class AdminPage extends StatelessWidget {
     const green = Color(0xFF39FF14);
     final myUid = FirebaseAuth.instance.currentUser!.uid;
     return Scaffold(
-      appBar: AppBar(backgroundColor: const Color(0xFF161616), title: const Text('Gestion des utilisateurs',
-          style: TextStyle(color: green)), iconTheme: const IconThemeData(color: green)),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF161616),
+        title: const Text('Gestion des utilisateurs', style: TextStyle(color: green)),
+        iconTheme: const IconThemeData(color: green),
+      ),
       body: StreamBuilder<DatabaseEvent>(
         stream: FirebaseDatabase.instance.ref('users').onValue,
         builder: (context, snap) {
@@ -29,14 +32,29 @@ class AdminPage extends StatelessWidget {
                 color: const Color(0xFF161616),
                 child: ListTile(
                   title: Text(p['email'] ?? '?', style: const TextStyle(color: Colors.white)),
-                  subtitle: Text(p['role'] == 'admin' ? 'ADMIN' : (p['enabled'] == true ? 'ACTIF' : 'EN ATTENTE'),
-                      style: TextStyle(color: p['role'] == 'admin' ? green : (p['enabled'] == true ? Colors.white54 : Colors.orange), fontSize: 11)),
-                  trailing: isMe ? const Text('moi', style: TextStyle(color: Colors.white24)) : Row(mainAxisSize: MainAxisSize.min, children: [
-                    Switch(value: p['enabled'] == true, activeColor: green,
-                        onChanged: (v) => FirebaseDatabase.instance.ref('users/$uid').update({'enabled': v})),
-                    IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent),
-                        onPressed: () => _confirmDelete(context, uid, p['email'] ?? '')),
-                  ]),
+                  subtitle: Text(
+                    p['role'] == 'admin' ? 'ADMIN' : (p['enabled'] == true ? 'ACTIF' : 'EN ATTENTE'),
+                    style: TextStyle(
+                      color: p['role'] == 'admin' ? green : (p['enabled'] == true ? Colors.white54 : Colors.orange),
+                      fontSize: 11,
+                    ),
+                  ),
+                  trailing: isMe
+                      ? const Text('moi', style: TextStyle(color: Colors.white24))
+                      : Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Switch(
+                              value: p['enabled'] == true,
+                              activeColor: green,
+                              onChanged: (v) => FirebaseDatabase.instance.ref('users/$uid').update({'enabled': v}),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.redAccent),
+                              onPressed: () => _confirmDelete(context, uid, p['email'] ?? ''),
+                            ),
+                          ],
+                        ),
                 ),
               );
             }).toList(),
@@ -45,3 +63,25 @@ class AdminPage extends StatelessWidget {
       ),
     );
   }
+
+  void _confirmDelete(BuildContext context, String uid, String email) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF161616),
+        title: const Text('Supprimer l\'accès ?', style: TextStyle(color: Colors.white)),
+        content: Text('$email ne pourra plus ouvrir le portail.', style: const TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
+          TextButton(
+            onPressed: () {
+              FirebaseDatabase.instance.ref('users/$uid').remove();
+              Navigator.pop(context);
+            },
+            child: const Text('Supprimer', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+  }
+}

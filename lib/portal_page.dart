@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'admin_page.dart';
 
 const String kSecret = 'K7xP2mQ9vL4wR8nT'; // MÊME secret que rules Firebase + code ESP
 
@@ -78,8 +79,28 @@ StreamSubscription? _profileSub;
                     Text('PORTAIL INTERFACE', style: TextStyle(color: Colors.white70, fontSize: 10, letterSpacing: 2)),
                   ]),
                   const Spacer(),
-                  IconButton(icon: const Icon(Icons.settings, color: Colors.white54),
-                      onPressed: () => FirebaseAuth.instance.signOut()),
+IconButton(
+  icon: const Icon(Icons.settings, color: Colors.white54),
+  onPressed: () {
+    if (_profile?['role'] == 'admin') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminPage()));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Accès réservé à l\'administrateur')));
+    }
+  },
+),
+                  if (_profile!['enabled'] != true) {
+  return Scaffold(body: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+    const Icon(Icons.lock_clock, color: Colors.orange, size: 60),
+    const SizedBox(height: 16),
+    const Text('Compte en attente\nd\'approbation admin', textAlign: TextAlign.center,
+        style: TextStyle(color: Colors.white70, fontSize: 16)),
+    const SizedBox(height: 24),
+    TextButton(onPressed: () => FirebaseAuth.instance.signOut(),
+        child: const Text('Se déconnecter', style: TextStyle(color: green))),
+  ])));
+}
                 ],
               ),
             ),

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'admin_page.dart';
+import 'wifi_page.dart';
 
 const String kSecret = 'K7xP2mQ9vL4wR8nT';
 
@@ -16,9 +17,17 @@ class _PortalPageState extends State<PortalPage> {
   bool _sending = false;
   bool _fbConnected = false;
   Map<String, dynamic>? _profile;
+  Map<String, dynamic>? _esp;
   final List<String> _logs = ['> Waiting for command...'];
   StreamSubscription? _connSub;
   StreamSubscription? _profileSub;
+  StreamSubscription? _espSub;
+
+  bool get _espOnline {
+    if (_esp == null || _esp!['lastSeen'] == null) return false;
+    final last = _esp!['lastSeen'] as int;
+    return (DateTime.now().millisecondsSinceEpoch ~/ 1000) - last < 120;
+  }
 
   @override
   void initState() {
@@ -41,12 +50,20 @@ class _PortalPageState extends State<PortalPage> {
         setState(() => _profile = Map<String, dynamic>.from(e.snapshot.value as Map));
       }
     });
+    _espSub = FirebaseDatabase.instance.ref('portal/$kSecret/esp').onValue.listen((e) {
+      if (mounted) {
+        setState(() => _esp = e.snapshot.value == null
+            ? null
+            : Map<String, dynamic>.from(e.snapshot.value as Map));
+      }
+    });
   }
 
   @override
   void dispose() {
     _connSub?.cancel();
     _profileSub?.cancel();
+    _espSub?.cancel();
     super.dispose();
   }
 
@@ -59,9 +76,18 @@ class _PortalPageState extends State<PortalPage> {
           '> Command ON @ ${now.hour}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}');
     });
     await FirebaseDatabase.instance.ref('portal/$kSecret/command').set(true);
-    await Future.delayed(const Duration(milliseconds: 1000));
+    await Future.delayed(const Duration(milliseconds: 500));
     await FirebaseDatabase.instance.ref('portal/$kSecret/command').set(false);
     if (mounted) setState(() => _sending = false);
+  }
+
+  void _openWifiIfAdmin() {
+    if (_profile?['role'] == 'admin') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const WifiPage()));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Diagnostic réservé à l\'administrateur')));
+    }
   }
 
   Widget _statusLine(String label, bool ok) {
@@ -128,6 +154,28 @@ class _PortalPageState extends State<PortalPage> {
                 ],
               ),
             ),
+
+            // ---- Bandeau d'alerte si carte hors ligne ----
+            if (!_espOnline)
+              GestureDetector(
+                onTap: _openWifiIfAdmin,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(.15),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.orange.withOpacity(.6)),
+                  ),
+                  child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.wifi_off, color: Colors.orange, size: 16),
+                    SizedBox(width: 8),
+                    Text('CARTE HORS LIGNE — toucher pour diagnostiquer',
+                        style: TextStyle(color: Colors.orange, fontSize: 11, letterSpacing: 1)),
+                  ]),
+                ),
+              ),
+
             const Spacer(),
             GestureDetector(
               onTap: _sendCommand,
@@ -157,6 +205,11 @@ class _PortalPageState extends State<PortalPage> {
             _statusLine('SYSTEM READY', true),
             const SizedBox(height: 6),
             _statusLine('FIREBASE SYNCED', _fbConnected),
+            const SizedBox(height: 6),
+            GestureDetector(
+              onTap: _openWifiIfAdmin,
+              child: _statusLine('CARTE ESP', _espOnline),
+            ),
             const SizedBox(height: 10),
             const Text('TAP TO DEPLOY PORTAL',
                 style: TextStyle(color: Colors.white60, letterSpacing: 2, fontSize: 12)),
@@ -170,10 +223,14 @@ class _PortalPageState extends State<PortalPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(children: [
-                      Icon(Icons.terminal, color: green, size: 14),
-                      SizedBox(width: 6),
-                      Text('CONSOLE OUTPUT', style: TextStyle(color: green, fontSize: 11, letterSpacing: 1)),
+                    Row(children: [
+                      const Icon(Icons.terminal, color: green, size: 14),
+                      const SizedBox(width: 6),
+                      const Text('CONSOLE OUTPUT', style: TextStyle(color: green, fontSize: 11, letterSpacing: 1)),
+                      const Spacer(),
+                      if (_esp != null && _esp!['rssi'] != null)
+                        Text('${_esp!['rssi']} dBm',
+                            style: const TextStyle(color: Colors.white38, fontSize: 10, fontFamily: 'monospace')),
                     ]),
                     const SizedBox(height: 8),
                     ..._logs.take(3).map((l) => Padding(

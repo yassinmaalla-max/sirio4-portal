@@ -111,7 +111,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 28),
-                const Text('SÉCURISÉ PAR SIRIO CLOUD', style: TextStyle(color: Colors.white24, fontSize: 10, letterSpacing: 1)),
+                const Text('Déveloper par yassinmaalla-max', style: TextStyle(color: Colors.white24, fontSize: 10, letterSpacing: 1)),
                 const SizedBox(height: 4),
                 const Row(mainAxisSize: MainAxisSize.min, children: [
                   Icon(Icons.local_fire_department, color: Colors.orange, size: 12),

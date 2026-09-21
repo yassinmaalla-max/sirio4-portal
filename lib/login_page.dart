@@ -37,7 +37,8 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _forgot() async {
     if (_email.text.trim().isEmpty) return;
     await FirebaseAuth.instance.sendPasswordResetEmail(email: _email.text.trim());
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Email de réinitialisation envoyé')));
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email de réinitialisation envoyé')));
   }
 
   @override
@@ -79,7 +80,7 @@ class _LoginPageState extends State<LoginPage> {
                         decoration: const InputDecoration(hintText: 'operateur@sirio4.com', hintStyle: TextStyle(color: Colors.white24)),
                       ),
                       const SizedBox(height: 12),
-                      const Text('ASSE', style: TextStyle(color: green, fontSize: 10, letterSpacing: 1)),
+                      const Text('MOT DE PASSE', style: TextStyle(color: green, fontSize: 10, letterSpacing: 1)),
                       TextField(
                         controller: _pass,
                         obscureText: true,
@@ -91,7 +92,8 @@ class _LoginPageState extends State<LoginPage> {
                         width: double.infinity, height: 46,
                         child: ElevatedButton(
                           onPressed: _loading ? null : _login,
-                          style: ElevatedButton.styleFrom(backgroundColor: green, foregroundColor: Colors.black,
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: green, foregroundColor: Colors.black,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(23))),
                           child: _loading
                               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
@@ -99,10 +101,12 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      Center(child: TextButton(onPressed: _forgot, child: const Text('Mot de passe oublié ?', style: TextStyle(color: Colors.white54, fontSize: 12)))),
-                      TextButton(
-  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterPage())),
-  child: const Text('Créer un compte', style: TextStyle(color: green, fontSize: 12))),
+                      Center(child: TextButton(
+                          onPressed: _forgot,
+                          child: const Text('Mot de passe oublié ?', style: TextStyle(color: Colors.white54, fontSize: 12)))),
+                      Center(child: TextButton(
+                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterPage())),
+                          child: const Text('Créer un compte', style: TextStyle(color: green, fontSize: 12)))),
                     ],
                   ),
                 ),
@@ -118,27 +122,6 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-  void _confirmDelete(BuildContext context, String uid, String email) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF161616),
-        title: const Text('Supprimer l\'accès ?', style: TextStyle(color: Colors.white)),
-        content: Text('$email ne pourra plus ouvrir le portail.', style: const TextStyle(color: Colors.white70)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
-          TextButton(
-              onPressed: () {
-                FirebaseDatabase.instance.ref('users/$uid').remove();
-                Navigator.pop(context);
-              },
-              child: const Text('Supprimer', style: TextStyle(color: Colors.redAccent))),
-        ],
       ),
     );
   }
